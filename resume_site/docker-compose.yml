@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME:-resume_db}
+      - POSTGRES_USER=${DB_USER:-resume_user}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 resume_site.wsgi:application"
+    volumes:
+      - staticfiles:/app/staticfiles
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      - db
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:?Set DJANGO_ALLOWED_HOSTS in .env}
+      - DJANGO_CSRF_TRUSTED_ORIGINS=${DJANGO_CSRF_TRUSTED_ORIGINS:-}
+      - DJANGO_USE_HTTPS=${DJANGO_USE_HTTPS:-False}
+      - DJANGO_SECURE_SSL_REDIRECT=${DJANGO_SECURE_SSL_REDIRECT:-True}
+      - DJANGO_SECURE_HSTS_SECONDS=${DJANGO_SECURE_HSTS_SECONDS:-3600}
+      - DB_NAME=${DB_NAME:-resume_db}
+      - DB_USER=${DB_USER:-resume_user}
+      - DB_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      - DB_HOST=db
+      - DB_PORT=5432
+
+volumes:
+  postgres_data:
+  staticfiles:

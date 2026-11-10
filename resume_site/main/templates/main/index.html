@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Резюме {{ resume.name }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- КНОПКА РЕЖИМА ЧТЕНИЯ -->
+    <button id="readingToggle" class="reading-toggle" title="Только для чтения">
+        <i class="fas fa-book-open"></i>
+        <span>Только для чтения</span>
+    </button>
+
+    <div class="resume">
+
+        <!-- HERO -->
+        <header class="hero">
+            <h1>{{ resume.name }}</h1>
+            <p class="subtitle">{{ resume.title }}</p>
+            <a href="#about" class="scroll-hint">
+                <i class="fas fa-chevron-down"></i>
+            </a>
+        </header>
+
+        <!-- ОБО МНЕ -->
+        {% if resume.about %}
+        <section id="about" class="card fade-block">
+            <h2>Обо мне</h2>
+            <div class="about-text">{{ resume.about|safe }}</div>
+        </section>
+        {% endif %}
+
+        <!-- НАВЫКИ -->
+        {% if skill_groups %}
+        <section class="card fade-block">
+            <h2>Навыки</h2>
+            <ul>
+                {% for group in skill_groups %}
+                    <li><strong>{{ group.title }}:</strong> {{ group.items }}</li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <!-- ОПЫТ РАБОТЫ -->
+        {% if experiences %}
+        <section class="card fade-block">
+            <h2>Опыт работы</h2>
+            {% for exp in experiences %}
+                <div class="experience-item">
+                    <p>
+                        <strong>{{ exp.position }}</strong>{% if exp.company %} / {{ exp.company }}{% endif %}<br>
+                        <em>{{ exp.period }}</em>
+                    </p>
+                    {% if exp.description %}
+                    <ul>
+                        {% for line in exp.description.splitlines %}
+                            {% if line.strip %}
+                                <li>{{ line }}</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- ПРОЕКТЫ -->
+        {% if projects %}
+        <section class="card fade-block">
+            <h2>Проекты</h2>
+            <ul>
+                {% for p in projects %}
+                    <li>
+                        <strong>{{ p.title }}</strong> — {{ p.description }}
+                        {% if p.link %}
+                            <a href="{{ p.link }}" target="_blank" rel="noopener">→ ссылка</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endif %}
+
+        <!-- ОБРАЗОВАНИЕ -->
+        {% if educations %}
+        <section class="card fade-block">
+            <h2>Образование</h2>
+            {% for e in educations %}
+                <div class="education-item">
+                    <p>
+                        <strong>{{ e.institution }}</strong><br>
+                        {{ e.program }}{% if e.period %} · {{ e.period }}{% endif %}
+                    </p>
+                    {% if e.note %}
+                        <div class="about-text">{{ e.note|safe }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <!-- КОНТАКТЫ -->
+        <section class="card fade-block">
+            <h2>Контакты</h2>
+            <p><i class="fas fa-envelope"></i> <a href="mailto:{{ resume.email }}">{{ resume.email }}</a></p>
+            <p><i class="fas fa-phone"></i> <a href="tel:{{ resume.phone }}">{{ resume.phone }}</a></p>
+            <p><i class="fab fa-telegram"></i> <a href="https://t.me/{{ resume.telegram|cut:'@' }}" target="_blank">{{ resume.telegram }}</a></p>
+        </section>
+
+    </div>
+
+    <script>
+        const blocks = document.querySelectorAll('.fade-block');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.12 });
+        blocks.forEach(block => observer.observe(block));
+
+        const toggle = document.getElementById('readingToggle');
+        const body = document.body;
+
+        if (localStorage.getItem('readingMode') === 'on') {
+            body.classList.add('reading-mode');
+            updateButton();
+        }
+        toggle.addEventListener('click', () => {
+            body.classList.toggle('reading-mode');
+            const isOn = body.classList.contains('reading-mode');
+            localStorage.setItem('readingMode', isOn ? 'on' : 'off');
+            updateButton();
+        });
+        function updateButton() {
+            const isOn = body.classList.contains('reading-mode');
+            toggle.innerHTML = isOn
+                ? '<i class="fas fa-magic"></i><span>Обычный вид</span>'
+                : '<i class="fas fa-book-open"></i><span>Только для чтения</span>';
+            toggle.title = isOn ? 'Вернуть красивый вид' : 'Только для чтения';
+        }
+    </script>
+
+</body>
+</html>

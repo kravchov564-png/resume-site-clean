@@ -1,0 +1,11 @@
+.env
+.git
+.gitignore
+__pycache__/
+*.py[cod]
+.mypy_cache/
+staticfiles/
+db.sqlite3
+venv/
+.venv/
+data.json
